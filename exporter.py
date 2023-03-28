@@ -21,7 +21,9 @@ class Exporter:
         self.bookstack_url = user["bookstack"]["url"]
         self.link_dict = {}
         class Exporter:
-    """A class that exports data from a bookstack_session to a wiki.
+    def __init__(self, bookstack_session, user):
+       """"
+       A class that exports data from a bookstack_session to a wiki.
 
     Args:
         bookstack_session (object): An object representing a session with the Bookstack API.
@@ -39,7 +41,7 @@ class Exporter:
         bookstack_url (str): A string representing the url for the Bookstack platform.
         link_dict (dict): A dictionary containing links to pages, books, and shelves.
 
-    """
+          """
 
     def __init__(self, bookstack_session, user):
         """Initializes an Exporter object with the given Bookstack session and user credentials."""
@@ -68,7 +70,7 @@ class Exporter:
             self.shelves.append(shelve)
             print(shelve.page_name, " exported")
         return self.shelves
-    
+    def export_shelves(self):
      """
     Exports all shelves from Bookstack to XWiki.
 
@@ -91,10 +93,10 @@ class Exporter:
                 print(bcolors.OKGREEN + "Shelve: ", shelve.page_name, " , response code: ", resp, " " + bcolors.ENDC)
             else:
                 print(bcolors.FAIL + "Shelve: ", shelve.page_name, " , response code: ", resp, " " + bcolors.ENDC)
-
+    def import_shelves(self):
  
-    """Imports all shelves from XWiki.
-
+     """
+    Imports all shelves from XWiki.
     Notes
     -----
     This function calls the Shelve.import_elem() function to import each individual shelf from XWiki.
@@ -111,7 +113,7 @@ class Exporter:
             self.books.append(book.export(book.export_url, self.bookstack_session))
             print("Book ", book.title, " exported, pages and chapters: ", book.subelems)
         return self.books
-    
+    def export_books(self):
       """
     Exports all books from Bookstack to XWiki.
 
@@ -130,7 +132,8 @@ class Exporter:
                 print(bcolors.OKGREEN + "Book: ", book.page_name, " , response code: ", resp, "" + bcolors.ENDC)
             else:
                 print(bcolors.FAIL + "Book: ", book.page_name, " , response code: ", resp, "" + bcolors.ENDC)
-    """
+    def import_books(self):
+     """
     Imports the books in the `self.books` list to the XWiki instance specified by `self.xwiki_url`.
     Sets the `link_dict` dictionary with page names and their corresponding links in XWiki.
     
@@ -139,7 +142,7 @@ class Exporter:
     
     Raises:
     None
-   """
+    """
     def export_missing_books(self, books):
         additional_books = []
         for i in range(1, 6):
@@ -158,8 +161,8 @@ class Exporter:
                     )
         return additional_books
 
- 
-    """Searches for missing books in the Bookstack instance and creates Book objects for them.
+    def export_missing_books(self, books):
+     """Searches for missing books in the Bookstack instance and creates Book objects for them.
 
     Parameters
     ----------
@@ -175,7 +178,7 @@ class Exporter:
     -----
     This function searches the first 5 pages of the "Books" section in the Bookstack instance for book links that have
     not been exported yet. For each missing book, a new Book object is created and added to the output list.
-"""
+    """
 
 
     def export_books_page_links(self, page_number):
@@ -185,7 +188,8 @@ class Exporter:
         ).content.decode('utf-8')
         return BeautifulSoup(utils.preprocess_page(page), features="html.parser").body.find_all('a', attrs={'class',
                                                                                                             'entity-list-item-link'})
-    """
+    def export_books_page_links(self, page_number):
+     """
     Export the links to all books on the given page number.
 
     Parameters
@@ -202,7 +206,7 @@ class Exporter:
     ------
     ValueError
         If the given page_number is not an integer greater than zero.
-    """
+     """
 
 
     def export_pages(self):
@@ -215,7 +219,8 @@ class Exporter:
         for page in self.pages:
             self.link_dict[page.page_name] = page.link
         return self.pages
-    """
+    def export_pages(self):
+     """
     Export all pages in the BookStack instance and store them in the 'exports' directory.
 
     Returns
@@ -243,7 +248,8 @@ class Exporter:
                 chapters += additional_books
                 pages += additional_pages
         return pages, chapters
-    """
+    def export_pages_and_chapters(self, books):
+      """
         Export pages and chapters from a list of books.
 
         Parameters
@@ -283,6 +289,7 @@ class Exporter:
             pages.append(subelem)
             print("Page ", subelem.page_name, "exported")
         return additional_books, pages
+    def export_pages_and_books(self, subelems):
        """
     Exports all pages and books in a list of sub-elements recursively.
 
@@ -319,14 +326,15 @@ class Exporter:
                 print(1)
             page.parse_page(self.link_dict)
             print("Page ", page.page_name, " parsed")
-    """
+    def parse_pages(self):
+      """
     Parse the exported pages.
 
     This method exports each page, then parses its content using the `parse_page` method of the `Page` class.
 
     Returns:
         None
-    """
+     """
 
     def import_pages(self):
         print("PAGES IMPORT:")
@@ -341,7 +349,8 @@ class Exporter:
         print("Pages imported: ", str(counter))
         shutil.rmtree("exports")
         print("Removed exports folder")
-    """
+    def import_pages(self):
+     """
     Imports pages to the XWiki instance.
 
     Returns
@@ -375,8 +384,8 @@ class Exporter:
             if not utils.find_page(elem, unique_pages):
                 unique_pages.append(elem)
         self.pages = unique_pages
-
-    """
+    def filter_similar_pages(self):
+     """
      Filter out similar pages from the list of pages.
     
     The method compares each page in the current list of pages with a list of unique pages. If a page is already

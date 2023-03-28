@@ -2,6 +2,7 @@ import utils
 import requests
 from exporter import Exporter
 
+
 user_data = utils.get_json_from_file("userdata.json")
 
 session_requests = requests.session()
