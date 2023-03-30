@@ -14,20 +14,20 @@ class Exporter:
         A class that exports data from a bookstack_session to a wiki.
 
         Args:
-            bookstack_session (object): An object representing a session with the Bookstack API.
-            user (dict): A dictionary containing user login credentials and urls for the Bookstack and XWiki platforms.
+        bookstack_session (object): An object representing a session with the Bookstack API.
+        user (dict): A dictionary containing user login credentials and urls for the Bookstack and XWiki platforms.
 
         Attributes:
-            pages (list): A list containing all the pages to be exported.
-            books (list): A list containing all the books to be exported.
-            shelves (list): A list containing all the shelves to be exported.
-            bookstack_session (object): An object representing a session with the Bookstack API.
-            xwiki_user (dict): A dictionary containing the user login credentials for XWiki.
-            bookstack_user (dict): A dictionary containing the user login credentials for Bookstack.
-            xwiki_url (str): A string representing the url for the XWiki platform.
-            xwiki_home_url (str): A string representing the url for the XWiki home page.
-            bookstack_url (str): A string representing the url for the Bookstack platform.
-            link_dict (dict): A dictionary containing links to pages, books, and shelves.
+        pages (list): A list containing all the pages to be exported.
+        books (list): A list containing all the books to be exported.
+        shelves (list): A list containing all the shelves to be exported.
+        bookstack_session (object): An object representing a session with the Bookstack API.
+        xwiki_user (dict): A dictionary containing the user login credentials for XWiki.
+        bookstack_user (dict): A dictionary containing the user login credentials for Bookstack.
+        xwiki_url (str): A string representing the url for the XWiki platform.
+        xwiki_home_url (str): A string representing the url for the XWiki home page.
+        bookstack_url (str): A string representing the url for the Bookstack platform.
+        link_dict (dict): A dictionary containing links to pages, books, and shelves.
         """ 
         self.pages = []
         self.books = []
@@ -72,15 +72,14 @@ class Exporter:
 
 
     def import_shelves(self):
-       
         """
         Imports all shelves from XWiki.
         Notes
         -----
         This function calls the Shelve.import_elem() function to import each individual shelf from XWiki.
         """
-    print("SHELVES IMPORT:")
-    for shelve in self.shelves:
+        print("SHELVES IMPORT:")
+        for shelve in self.shelves:
             resp = shelve.import_elem()
             if 200 < resp.status_code <= 202:
                 print(bcolors.OKGREEN + "Shelve: ", shelve.page_name, " , response code: ", resp, " " + bcolors.ENDC)
@@ -114,7 +113,6 @@ class Exporter:
 
    
     def import_books(self):
-        
         """
         Imports the books in the `self.books` list to the XWiki instance specified by `self.xwiki_url`.
         Sets the `link_dict` dictionary with page names and their corresponding links in XWiki.
@@ -123,8 +121,7 @@ class Exporter:
         None
         
         Raises:
-        None
-        
+        None 
         
         """
         
@@ -200,9 +197,8 @@ class Exporter:
             self.bookstack_url + '/books?page=' + str(page_number),
             headers=dict(referer=self.bookstack_url)
         ).content.decode('utf-8')
-
-        return BeautifulSoup(utils.preprocess_page(page), features="html.parser") \
-        .body.find_all('a', attrs={'class','entity-list-item-link'})
+        return BeautifulSoup(utils.preprocess_page(page), features="html.parser").body.find_all('a', attrs={'class','entity-list-item-link'})
+        
 
    
    
@@ -238,7 +234,7 @@ class Exporter:
    
     
     def export_pages_and_chapters(self, books):
-         """
+        """
         Export pages and chapters from a list of books.
 
         Parameters
@@ -262,161 +258,151 @@ class Exporter:
         as separate lists.
 
         """
-    chapters = []
-    pages = []
-    for book in books:
+        chapters = []
+        pages = []
+        for book in books:
             additional_books, pg = self.export_pages_and_books(book.subelems)
             pages += pg
             if len(additional_books) > 0:
                 additional_pages, chapters = self.export_pages_and_chapters(additional_books)
                 chapters += additional_books
                 pages += additional_pages 
-                return pages, chapters
+        return pages, chapters
     
      
     
 
     def export_pages_and_books(self, subelems):
-       """
-    Exports all pages and books in a list of sub-elements recursively.
-
-    Parameters
-    ----------
-    subelems : list
-        A list of sub-elements to export.
-
-    Returns
-    -------
-    tuple
-        A tuple containing two lists: additional_books, and pages. 
-        additional_books is a list of Book objects that were exported, and 
-        pages is a list of Page objects that were exported.
-
-    Raises
-    ------
-    None
-
-    Notes
-    -----
-    This method exports all Book objects in subelems and recursively 
-    exports all their sub-elements. Pages are added to the pages list 
-    and Book objects are added to the additional_books list. 
-
-    """       
-    additional_books = []
-    pages = []
-
-    for subelem in subelems:
-        if isinstance(subelem, Book):
-            subelem.export(subelem.export_url, self.bookstack_session)
-            resp = subelem.import_elem()
-            self.link_dict[subelem.page_name] = subelem.link
-            additional_books.append(subelem)
-            print("Chapter ", subelem.title, " exported, pages and chapters: ", subelem.subelems)
-            continue
-        pages.append(subelem)
-        print("Page ", subelem.page_name, "exported")
-    
-        return additional_books, pages
+        """
+        Export pages and books to an external server using the Book.export() method.
         
+        Parameters
+        ----------
+        subelems : list
+            A list of Book and Page objects to export.
+        
+        Returns
+        -------
+        tuple
+            A tuple containing two lists:
+            - additional_books: A list of Book objects that were exported.
+            - pages: A list of Page objects that were exported.
+        
+        """
+        additional_books = []
+        pages = []
+
+        for subelem in subelems:
+            if isinstance(subelem, Book):
+                subelem.export(subelem.export_url, self.bookstack_session)
+                resp = subelem.import_elem()
+                self.link_dict[subelem.page_name] = subelem.link
+                additional_books.append(subelem)
+                print("Chapter ", subelem.title, " exported, pages and chapters: ", subelem.subelems)
+                continue
+            pages.append(subelem)
+            print("Page ", subelem.page_name, "exported")
+        
+        return additional_books, pages
+            
      
     
 
     def parse_pages(self):
-     """
-    Exports all pages and books in a list of sub-elements recursively.
+        """
+        Exports all pages and books in a list of sub-elements recursively.
 
-    Parameters
-    ----------
-    subelems : list
+        Parameters
+        ----------
+        subelems : list
         A list of sub-elements to export.
 
-    Returns
-    -------
-    tuple
+        Returns
+        -------
+        tuple
         A tuple containing two lists: additional_books, and pages. 
         additional_books is a list of Book objects that were exported, and 
         pages is a list of Page objects that were exported.
 
-    Raises
-    ------
-    None
+        Raises
+        ------
+        None
 
-    Notes
-    -----
-    This method exports all Book objects in subelems and recursively 
-    exports all their sub-elements. Pages are added to the pages list 
-    and Book objects are added to the additional_books list. 
+        Notes
+        -----
+        This method exports all Book objects in subelems and recursively 
+        exports all their sub-elements. Pages are added to the pages list 
+        and Book objects are added to the additional_books list. 
 
-    """     
-    print("PAGES PARSING:")
-    for page in self.pages:
+        """     
+        print("PAGES PARSING:")
+        for page in self.pages:
             page.export(self.bookstack_session)
             if 'business-trips' in page.page_name:
                 print(1)
             page.parse_page(self.link_dict)
             print("Page ", page.page_name, " parsed")
-    
+
     
 
     def import_pages(self):
-           """
-    Imports pages to the XWiki instance.
+        """
+        Imports pages to the XWiki instance.
 
-    Returns
-    -------
-    None
+        Returns
+        -------
+        None
         This method has no return value.
 
-    Notes
-    -----
-    This method sends a POST request to the XWiki instance to import each page
-    in the `self.pages` list. If the request returns a status code between 200
-    and 202, the page is considered successfully imported, otherwise it is
-    considered failed.
+        Notes
+        -----
+        This method sends a POST request to the XWiki instance to import each page
+        in the `self.pages` list. If the request returns a status code between 200
+        and 202, the page is considered successfully imported, otherwise it is
+        considered failed.
 
-    After importing all pages, the `exports` directory created in the
-    `export_pages` method is deleted.
+        After importing all pages, the `exports` directory created in the
+        `export_pages` method is deleted.
 
-    Examples
-    --------
-    >>> my_importer = MyWikiImporter()
-    >>> my_importer.import_pages()
-    PAGES IMPORT:
-    Page: Page1 imported , response code: 200
-    Page: Page2 failed , response code: 500
-    Pages imported: 2
-    """
-    print("PAGES IMPORT:")
-    counter = 0
-    for page in self.pages:
+        Examples
+        --------
+        >>> my_importer = MyWikiImporter()
+        >>> my_importer.import_pages()
+        PAGES IMPORT:
+        Page: Page1 imported , response code: 200
+        Page: Page2 failed , response code: 500
+        Pages imported: 2
+        """
+        print("PAGES IMPORT:")
+        counter = 0
+        for page in self.pages:
             request_result = page.import_page(self.xwiki_url)
             if 200 < request_result.status_code <= 202:
-                print(bcolors.OKGREEN + "Page: ", page.page_name, "imported , response code: ", request_result, "" + bcolors.ENDC)
+                    print(bcolors.OKGREEN + "Page: ", page.page_name, "imported , response code: ", request_result, "" + bcolors.ENDC)
             else:
-                print(bcolors.FAIL + "Page: ", page.page_name, " failed , response code: ", request_result, "" + bcolors.ENDC)
-            counter+=1
-            print("Pages imported: ", str(counter))
-            shutil.rmtree("exports")
-            print("Removed exports folder")
-    
+                    print(bcolors.FAIL + "Page: ", page.page_name, " failed , response code: ", request_result, "" + bcolors.ENDC)
+                counter+=1
+        print("Pages imported: ", str(counter))
+        shutil.rmtree("exports")
+        print("Removed exports folder")
+        
  
 
     def filter_similar_pages(self):
-       """
-     Filter out similar pages from the list of pages.
+        """
+        Filter out similar pages from the list of pages.
+        
+        The method compares each page in the current list of pages with a list of unique pages. If a page is already
+        present in the list of unique pages, it is not added again. This way, only unique pages are kept in the final list
+        of pages.
+        
+        Returns:
+            list: A list of unique pages.
+        """
+        unique_pages = []
+        for elem in self.pages:
+                if not utils.find_page(elem, unique_pages):
+                    unique_pages.append(elem)
+        self.pages = unique_pages
     
-    The method compares each page in the current list of pages with a list of unique pages. If a page is already
-    present in the list of unique pages, it is not added again. This way, only unique pages are kept in the final list
-    of pages.
-    
-    Returns:
-        list: A list of unique pages.
-    """
-    unique_pages = []
-    for elem in self.pages:
-            if not utils.find_page(elem, unique_pages):
-                unique_pages.append(elem)
-    self.pages = unique_pages
-    def filter_similar_pages(self):
      
